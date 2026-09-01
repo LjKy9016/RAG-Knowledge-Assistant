@@ -3,6 +3,17 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
+from src.generation.context_builder import (
+    assign_source_numbers,
+    build_context,
+    build_retrieval_query,
+    collect_sources,
+)
+from src.generation.session_store import (
+    add_message,
+    get_history,
+    get_or_create_session,
+)
 from src.retrieval.vector_store import search_chunks
 
 # python -m src.generation.answer_generator
@@ -25,83 +36,36 @@ def get_groq_client():
     return Groq(api_key=api_key)
 
 
-def assign_source_numbers(search_results):
-    """Assign one source number to each unique file and page."""
-    source_numbers = {}
-
-    for result in search_results:
-        source_key = (
-            result["file_name"],
-            result["page_number"],
-        )
-
-        if source_key not in source_numbers:
-            source_numbers[source_key] = (
-                len(source_numbers) + 1
-            )
-
-    return source_numbers
-
-
-def build_context(search_results, source_numbers):
-    """Format retrieved chunks as context for the language model."""
-    context_sections = []
-
-    for result in search_results:
-        source_key = (
-            result["file_name"],
-            result["page_number"],
-        )
-
-        source_number = source_numbers[source_key]
-
-        source_label = (
-            f"Source {source_number}: "
-            f"{result['file_name']}, "
-            f"page {result['page_number']}"
-        )
-
-        context_sections.append(
-            f"[{source_label}]\n{result['text']}"
-        )
-
-    return "\n\n".join(context_sections)
-
-
-def collect_sources(source_numbers):
-    """Create the source list shown with the final answer."""
-    sources = []
-
-    for source_key, source_number in source_numbers.items():
-        file_name, page_number = source_key
-
-        sources.append(
-            {
-                "source_number": source_number,
-                "file_name": file_name,
-                "page_number": page_number,
-            }
-        )
-
-    return sources
-
-
-def generate_answer(question, top_k=3):
-    """Retrieve relevant chunks and generate a grounded answer."""
+def generate_answer(question, session_id=None, top_k=3):
+    """Generate a grounded answer with conversation history."""
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")
 
-    search_results = search_chunks(
+    session_id = get_or_create_session(session_id)
+    history = get_history(session_id)
+
+    retrieval_query = build_retrieval_query(
         question,
+        history,
+    )
+
+    search_results = search_chunks(
+        retrieval_query,
         top_k=top_k,
     )
 
     if not search_results:
+        refusal = (
+            "I could not find relevant information "
+            "in the knowledge base."
+        )
+
+        add_message(session_id, "user", question)
+        add_message(session_id, "assistant", refusal)
+
         return {
-            "answer": (
-                "I could not find relevant information "
-                "in the knowledge base."
-            ),
+            "session_id": session_id,
+            "answer": refusal,
             "sources": [],
         }
 
@@ -133,52 +97,84 @@ Rules:
 5. Keep the answer clear and concise.
 6. Cite the source number after each factual answer, for example
    [Source 1].
-7. Use only the source numbers provided in the document context.
+7. Use only the source numbers provided in the current document
+   context.
+8. Use the conversation history only to understand follow-up
+   questions. Do not treat previous answers as document evidence.
 """.strip()
 
     user_prompt = f"""
-Question:
+Current question:
 {question.strip()}
 
-Document context:
+Current document context:
 {context}
 """.strip()
 
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt,
+        }
+    ]
+
+    messages.extend(history)
+
+    messages.append(
+        {
+            "role": "user",
+            "content": user_prompt,
+        }
+    )
+
     completion = client.chat.completions.create(
         model=model_name,
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+        messages=messages,
         temperature=0.2,
         max_completion_tokens=800,
     )
 
     answer = completion.choices[0].message.content
 
+    if not answer:
+        answer = (
+            "The answer could not be generated. "
+            "Please try again."
+        )
+
+    add_message(session_id, "user", question)
+    add_message(session_id, "assistant", answer)
+
     return {
+        "session_id": session_id,
         "answer": answer,
         "sources": collect_sources(source_numbers),
     }
 
 
 if __name__ == "__main__":
-    test_question = "伦敦酒店每晚的报销限额是多少？"
+    first_question = "伦敦酒店每晚的报销限额是多少？"
 
-    result = generate_answer(test_question)
+    first_result = generate_answer(first_question)
 
-    print(f"\nQuestion: {test_question}")
-    print(f"\nAnswer:\n{result['answer']}")
+    print(f"\nQuestion 1: {first_question}")
+    print(f"Answer 1: {first_result['answer']}")
+    print(f"Session ID: {first_result['session_id']}")
 
-    print("\nRetrieved sources:")
+    second_question = "那英国其他地区呢？"
 
-    for source in result["sources"]:
+    second_result = generate_answer(
+        second_question,
+        session_id=first_result["session_id"],
+    )
+
+    print(f"\nQuestion 2: {second_question}")
+    print(f"Answer 2: {second_result['answer']}")
+    print(f"Session ID: {second_result['session_id']}")
+
+    print("\nSources for the second answer:")
+
+    for source in second_result["sources"]:
         print(
             f"- Source {source['source_number']}: "
             f"{source['file_name']}, "
