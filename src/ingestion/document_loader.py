@@ -1,14 +1,15 @@
-import torch
+import re
 from pathlib import Path
-import pymupdf
+
 import easyocr
 import numpy as np
-import re
+import pymupdf
+import torch
 
 
-DOCUMENTS_DIR = Path(__file__).resolve().parent.parent / "documents"
+DOCUMENTS_DIR = Path(__file__).resolve().parents[2] / "documents"
 
-# OCR model is loaded only when a scanned page is found.
+# The OCR model is loaded only when a scanned page is found.
 ocr_reader = None
 
 
@@ -56,7 +57,11 @@ def extract_text_with_ocr(page):
     image = np.frombuffer(
         pixmap.samples,
         dtype=np.uint8,
-    ).reshape(pixmap.height, pixmap.width, pixmap.n)
+    ).reshape(
+        pixmap.height,
+        pixmap.width,
+        pixmap.n,
+    )
 
     reader = get_ocr_reader()
 
@@ -67,6 +72,7 @@ def extract_text_with_ocr(page):
     )
 
     text = "\n".join(text_lines).strip()
+
     return clean_ocr_text(text)
 
 
@@ -85,6 +91,7 @@ def extract_text_from_pdf(pdf_path):
                     f"Scanning with OCR: {pdf_path.name}, "
                     f"page {page_number}"
                 )
+
                 text = extract_text_with_ocr(page)
                 used_ocr = True
 
@@ -113,7 +120,11 @@ def load_all_pdfs(documents_dir=DOCUMENTS_DIR):
         try:
             pages = extract_text_from_pdf(pdf_path)
             all_pages.extend(pages)
-            print(f"Loaded: {pdf_path.name} ({len(pages)} page(s))")
+
+            print(
+                f"Loaded: {pdf_path.name} "
+                f"({len(pages)} page(s))"
+            )
 
         except Exception as error:
             print(f"Failed to load {pdf_path.name}: {error}")
