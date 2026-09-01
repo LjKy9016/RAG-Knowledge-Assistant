@@ -20,6 +20,7 @@ from src.retrieval.vector_store import (
 )
 
 # uvicorn src.api.main:app --reload
+# http://127.0.0.1:8000/docs
 
 @asynccontextmanager
 async def lifespan(app):
