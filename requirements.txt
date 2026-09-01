@@ -1,0 +1,6 @@
+PyMuPDF
+easyocr
+numpy
+torch
+sentence-transformers
+chromadb
