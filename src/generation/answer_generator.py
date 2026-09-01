@@ -15,6 +15,7 @@ from src.generation.session_store import (
     get_or_create_session,
 )
 from src.retrieval.vector_store import search_chunks
+from src.retrieval.relevance import filter_relevant_results
 
 # python -m src.generation.answer_generator
 
@@ -52,6 +53,10 @@ def generate_answer(question, session_id=None, top_k=3):
     search_results = search_chunks(
         retrieval_query,
         top_k=top_k,
+    )
+
+    search_results = filter_relevant_results(
+        search_results
     )
 
     if not search_results:
