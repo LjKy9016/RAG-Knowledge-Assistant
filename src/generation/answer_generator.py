@@ -14,6 +14,12 @@ from src.generation.session_store import (
     get_history,
     get_or_create_session,
 )
+from src.config import (
+    DEFAULT_TOP_K,
+    RERANK_CANDIDATE_K,
+    USE_RERANKER,
+)
+from src.retrieval.reranker import rerank_results
 from src.retrieval.vector_store import search_chunks
 from src.retrieval.relevance import filter_relevant_results
 
@@ -37,7 +43,7 @@ def get_groq_client():
     return Groq(api_key=api_key)
 
 
-def generate_answer(question, session_id=None, top_k=3):
+def generate_answer(question, session_id=None, top_k=DEFAULT_TOP_K, use_reranker=None):
     """Generate a grounded answer with conversation history."""
     if not question or not question.strip():
         raise ValueError("Question cannot be empty")
@@ -50,14 +56,36 @@ def generate_answer(question, session_id=None, top_k=3):
         history,
     )
 
+    if use_reranker is None:
+        reranker_enabled = USE_RERANKER
+    else:
+        reranker_enabled = use_reranker
+
+    if reranker_enabled:
+        candidate_k = max(
+            RERANK_CANDIDATE_K,
+            top_k,
+        )
+    else:
+        candidate_k = top_k
+
     search_results = search_chunks(
         retrieval_query,
-        top_k=top_k,
+        top_k=candidate_k,
     )
 
     search_results = filter_relevant_results(
         search_results
     )
+
+    if reranker_enabled:
+        search_results = rerank_results(
+            retrieval_query,
+            search_results,
+            top_k=top_k,
+        )
+    else:
+        search_results = search_results[:top_k]
 
     if not search_results:
         refusal = (
