@@ -76,6 +76,10 @@ def generate_grounded_response(
         DEFAULT_MODEL,
     )
 
+    temperature = float(
+        os.getenv("GENERATION_TEMPERATURE", "0.2")
+    )
+
     user_prompt = f"""
 Current question:
 {question.strip()}
@@ -103,7 +107,7 @@ Current document context:
     completion = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        temperature=0.2,
+        temperature=temperature,
         max_completion_tokens=800,
     )
 

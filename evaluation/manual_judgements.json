@@ -1,0 +1,60 @@
+{
+  "rubric": {
+    "accuracy": {
+      "1": "The answer contains the required correct information, or correctly refuses an unanswerable question.",
+      "0": "The answer is incorrect, incomplete in a way that changes the meaning, or refuses an answerable question."
+    },
+    "faithfulness": {
+      "1": "All factual claims in the answer are supported by the expected document and no unsupported factual claim is added.",
+      "0.5": "The main answer is supported, but it contains a minor unsupported or unclear factual claim.",
+      "0": "The answer contains a factual claim that conflicts with or is not supported by the expected document.",
+      "null": "The response contains no substantive factual answer, so faithfulness is not scored."
+    }
+  },
+  "judgements": {
+    "Q01": {"accuracy": 1, "faithfulness": 1},
+    "Q02": {"accuracy": 1, "faithfulness": 1},
+    "Q03": {"accuracy": 1, "faithfulness": 1},
+    "Q04": {"accuracy": 0, "faithfulness": null},
+    "Q05": {"accuracy": 1, "faithfulness": 1},
+    "Q06": {"accuracy": 1, "faithfulness": 1},
+    "Q07": {"accuracy": 1, "faithfulness": 1},
+    "Q08": {"accuracy": 1, "faithfulness": 1},
+    "Q09": {"accuracy": 0, "faithfulness": null},
+    "Q10": {"accuracy": 1, "faithfulness": 1},
+    "Q11": {"accuracy": 0, "faithfulness": null},
+    "Q12": {"accuracy": 0, "faithfulness": null},
+    "Q13": {"accuracy": 1, "faithfulness": 1},
+    "Q14": {"accuracy": 1, "faithfulness": 1},
+    "Q15": {"accuracy": 1, "faithfulness": 1},
+    "Q16": {"accuracy": 1, "faithfulness": null},
+    "Q17": {"accuracy": 1, "faithfulness": null},
+    "Q18": {"accuracy": 1, "faithfulness": null},
+    "M01_T1": {"accuracy": 1, "faithfulness": 1},
+    "M01_T2": {"accuracy": 1, "faithfulness": 1},
+    "M02_T1": {"accuracy": 1, "faithfulness": 1},
+    "M02_T2": {"accuracy": 1, "faithfulness": 1}
+  },
+  "sensitivity_judgements": {
+    "baseline:Q01": 1,
+    "baseline:Q04": 0,
+    "baseline:Q09": 0,
+    "baseline:Q12": 0,
+    "baseline:Q14": 1,
+    "baseline:Q16": 1,
+
+    "precise:Q01": 1,
+    "precise:Q04": 0,
+    "precise:Q09": 0,
+    "precise:Q12": 0,
+    "precise:Q14": 1,
+    "precise:Q16": 1,
+
+    "faster:Q01": 1,
+    "faster:Q04": 0,
+    "faster:Q09": 1,
+    "faster:Q12": 0,
+    "faster:Q14": 1,
+    "faster:Q16": 1
+  }
+}
