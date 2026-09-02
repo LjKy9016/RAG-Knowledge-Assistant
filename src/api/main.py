@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from functools import partial
 from time import perf_counter
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
@@ -14,6 +14,12 @@ from src.api.schemas import (
 )
 from src.generation.answer_generator import generate_answer
 from src.generation.session_store import delete_session
+from src.observability.request_logger import (
+    log_request_completed,
+    log_request_failed,
+    log_request_received,
+    log_session_deleted,
+)
 from src.retrieval.vector_store import (
     build_vector_store,
     get_collection,
@@ -75,7 +81,14 @@ def health_check():
 )
 async def ask_question(request: AskRequest):
     """Answer a question using retrieved document context."""
+    request_id = str(uuid4())
     start_time = perf_counter()
+
+    log_request_received(
+        request_id=request_id,
+        question=request.question,
+        session_id=request.session_id,
+    )
 
     try:
         generation_task = partial(
@@ -89,13 +102,37 @@ async def ask_question(request: AskRequest):
         )
 
     except ValueError as error:
+        latency_ms = (
+            perf_counter() - start_time
+        ) * 1000
+
+        log_request_failed(
+            request_id=request_id,
+            question=request.question,
+            session_id=request.session_id,
+            latency_ms=latency_ms,
+            error=error,
+            status_code=400,
+        )
+
         raise HTTPException(
             status_code=400,
             detail=str(error),
         ) from error
 
     except Exception as error:
-        print(f"Answer generation failed: {error}")
+        latency_ms = (
+            perf_counter() - start_time
+        ) * 1000
+
+        log_request_failed(
+            request_id=request_id,
+            question=request.question,
+            session_id=request.session_id,
+            latency_ms=latency_ms,
+            error=error,
+            status_code=500,
+        )
 
         raise HTTPException(
             status_code=500,
@@ -105,6 +142,13 @@ async def ask_question(request: AskRequest):
     latency_ms = (
         perf_counter() - start_time
     ) * 1000
+
+    log_request_completed(
+        request_id=request_id,
+        question=request.question,
+        result=result,
+        latency_ms=latency_ms,
+    )
 
     return {
         "session_id": result["session_id"],
@@ -122,6 +166,11 @@ async def ask_question(request: AskRequest):
 def clear_session(session_id: UUID):
     """Delete the stored history for one session."""
     was_deleted = delete_session(session_id)
+
+    log_session_deleted(
+        session_id=session_id,
+        deleted=was_deleted,
+    )
 
     if was_deleted:
         message = "Session history was deleted."

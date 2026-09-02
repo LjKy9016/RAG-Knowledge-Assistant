@@ -2,6 +2,7 @@
 project_brief.docx
 data/chroma_db/
 *.pyc
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

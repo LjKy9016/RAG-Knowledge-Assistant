@@ -45,12 +45,30 @@ def get_groq_client():
     return Groq(api_key=api_key)
 
 
+def get_token_usage(completion):
+    """Extract token usage from a Groq response."""
+    usage = completion.usage
+
+    if usage is None:
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
+    return {
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens,
+    }
+
+
 def generate_grounded_response(
     question,
     context,
     history,
 ):
-    """Generate an answer from question, context and history."""
+    """Generate an answer and return its model usage."""
     client = get_groq_client()
 
     model_name = os.getenv(
@@ -92,9 +110,13 @@ Current document context:
     answer = completion.choices[0].message.content
 
     if not answer:
-        return (
+        answer = (
             "The answer could not be generated. "
             "Please try again."
         )
 
-    return answer
+    return {
+        "answer": answer,
+        "model": model_name,
+        "usage": get_token_usage(completion),
+    }

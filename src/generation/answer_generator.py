@@ -1,4 +1,7 @@
-from src.config import DEFAULT_TOP_K
+from src.config import (
+    DEFAULT_TOP_K,
+    USE_RERANKER,
+)
 from src.generation.context_builder import (
     assign_source_numbers,
     build_context,
@@ -19,6 +22,30 @@ from src.security.guardrails import (
 )
 
 
+def create_metadata(
+    outcome,
+    reranker_enabled,
+    retrieved_chunks=0,
+    model=None,
+    usage=None,
+):
+    """Create internal monitoring metadata."""
+    if usage is None:
+        usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+
+    return {
+        "outcome": outcome,
+        "reranker_enabled": reranker_enabled,
+        "retrieved_chunks": retrieved_chunks,
+        "model": model,
+        **usage,
+    }
+
+
 def generate_answer(
     question,
     session_id=None,
@@ -31,11 +58,20 @@ def generate_answer(
 
     session_id = get_or_create_session(session_id)
 
+    if use_reranker is None:
+        reranker_enabled = USE_RERANKER
+    else:
+        reranker_enabled = use_reranker
+
     if contains_prompt_injection(question):
         return {
             "session_id": session_id,
             "answer": get_security_refusal(question),
             "sources": [],
+            "_metadata": create_metadata(
+                outcome="security_refusal",
+                reranker_enabled=reranker_enabled,
+            ),
         }
 
     safe_question = redact_pii(question)
@@ -46,7 +82,7 @@ def generate_answer(
         history,
     )
 
-    # Import retrieval models only after the security check passes.
+    # Load retrieval libraries only after the security check.
     from src.retrieval.retrieval_pipeline import (
         retrieve_relevant_chunks,
     )
@@ -54,7 +90,7 @@ def generate_answer(
     search_results = retrieve_relevant_chunks(
         retrieval_query,
         top_k=top_k,
-        use_reranker=use_reranker,
+        use_reranker=reranker_enabled,
     )
 
     if not search_results:
@@ -77,6 +113,10 @@ def generate_answer(
             "session_id": session_id,
             "answer": refusal,
             "sources": [],
+            "_metadata": create_metadata(
+                outcome="no_relevant_context",
+                reranker_enabled=reranker_enabled,
+            ),
         }
 
     source_numbers = assign_source_numbers(
@@ -88,11 +128,13 @@ def generate_answer(
         source_numbers,
     )
 
-    answer = generate_grounded_response(
+    generation_result = generate_grounded_response(
         safe_question,
         context,
         history,
     )
+
+    answer = generation_result["answer"]
 
     add_message(
         session_id,
@@ -109,6 +151,13 @@ def generate_answer(
         "session_id": session_id,
         "answer": answer,
         "sources": collect_sources(source_numbers),
+        "_metadata": create_metadata(
+            outcome="answered",
+            reranker_enabled=reranker_enabled,
+            retrieved_chunks=len(search_results),
+            model=generation_result["model"],
+            usage=generation_result["usage"],
+        ),
     }
 
 
@@ -123,3 +172,4 @@ if __name__ == "__main__":
     print(f"\nQuestion: {test_question}")
     print(f"Answer: {result['answer']}")
     print(f"Sources: {result['sources']}")
+    print(f"Metadata: {result['_metadata']}")
