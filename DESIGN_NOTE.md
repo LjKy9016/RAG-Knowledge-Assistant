@@ -1,0 +1,13 @@
+# Design Note
+
+The service uses a modular RAG pipeline so that document processing, retrieval, generation, security and API logic can be changed separately. FastAPI provides the service endpoints and an interactive Swagger demo. This keeps the project focused on backend implementation without requiring a separate frontend.
+
+PDF documents are processed with PyMuPDF. EasyOCR is used when a page contains little or no extractable text, which allows the knowledge base to include scanned documents. Extracted text is divided into overlapping chunks so that important information is less likely to be separated from its surrounding context. Each chunk keeps its file name, page number and chunk number for citation and debugging.
+
+The multilingual E5 small model creates embeddings for both English and Chinese text. It was selected because the knowledge base and user questions use both languages, while its smaller size can run locally on CPU. Embeddings are stored in a persistent Chroma collection. Retrieval first uses vector distance, followed by a distance threshold of 0.20. Results above this threshold are removed so that unrelated questions can be refused. A multilingual cross-encoder reranker then reorders the remaining candidates. The default configuration retrieves six candidates and sends the best two chunks to generation.
+
+GPT-OSS 120B is accessed through the Groq API. The system prompt requires the model to use only the supplied context and include source numbers. File names and page numbers are returned separately in the API response. Conversation history is stored in memory and is used only to understand follow-up questions. It is not treated as document evidence. Sessions are limited to ten messages and can be deleted through the API.
+
+Basic guardrails reject obvious English and Chinese prompt-injection attempts before retrieval. Common email addresses, phone numbers, National Insurance numbers, payment-card numbers and secret-like values are redacted before structured logs are written. Logs record request IDs, latency, outcome, sources, reranker status and token usage.
+
+The full evaluation achieved 81.82% Accuracy, 100% Faithfulness and 79.55% Context Precision. P90 latency was 5.80 seconds. The main remaining limitation is retrieval recall for some cross-language and architecture questions. A production version could add hybrid keyword and vector search, persistent session storage, authentication, access control and external monitoring.

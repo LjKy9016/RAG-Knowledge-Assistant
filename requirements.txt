@@ -7,5 +7,6 @@ chromadb
 groq
 python-dotenv
 fastapi
+pydantic
 uvicorn
 pytest
