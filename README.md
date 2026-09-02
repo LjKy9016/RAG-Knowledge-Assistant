@@ -93,6 +93,35 @@ python -m src.retrieval.vector_store
 
 The persistent Chroma data is stored locally and is excluded from Git.
 
+### Add Your Own PDF
+
+The current MVP supports PDF documents. To add another document:
+
+1. Stop the API if it is running.
+2. Copy the PDF into the `documents/` folder.
+3. Rebuild the vector store:
+
+```powershell
+python -m src.retrieval.vector_store
+```
+
+4. Start the API again:
+
+```powershell
+uvicorn src.api.main:app --reload
+```
+
+Existing chunks with the same IDs are updated and chunks from new PDFs are added.
+
+If a PDF has been removed or renamed, delete the old local vector store before rebuilding to prevent stale chunks:
+
+```powershell
+Remove-Item .\data\chroma_db -Recurse -Force
+python -m src.retrieval.vector_store
+```
+
+The deletion command only removes the generated local vector index. It does not delete the source PDFs.
+
 ## Run the API
 
 ```powershell
@@ -121,6 +150,27 @@ Example request body:
   "session_id": null
 }
 ```
+
+## Example Questions
+
+English:
+
+- How many days of paid annual leave do full-time employees receive?
+- How long are Orbit API access tokens valid?
+- How soon must an expense claim be submitted?
+
+Chinese:
+
+- 临时生产权限最长有效多长时间？
+- 认证日志需要保留多长时间？
+- 伦敦和英国其他地区的酒店每晚报销限额分别是多少？
+
+Multi-turn example:
+
+1. How many days of paid annual leave do employees receive?
+2. How many unused days can be carried forward?
+
+Try an unrelated question such as `What is the capital of France?` to test the explanatory refusal.
 
 ## Tests
 
