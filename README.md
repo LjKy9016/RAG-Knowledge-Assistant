@@ -95,11 +95,13 @@ The persistent Chroma data is stored locally and is excluded from Git.
 
 ### Add Your Own PDF
 
-The current MVP supports PDF documents. To add another document:
+The current MVP supports PDF documents. To add a new document:
 
 1. Stop the API if it is running.
+
 2. Copy the PDF into the `documents/` folder.
-3. Rebuild the vector store:
+
+3. Add the new document to the existing vector store:
 
 ```powershell
 python -m src.retrieval.vector_store
@@ -111,16 +113,17 @@ python -m src.retrieval.vector_store
 uvicorn src.api.main:app --reload
 ```
 
-Existing chunks with the same IDs are updated and chunks from new PDFs are added.
+Adding a new PDF does not require deleting the existing vector store. Existing chunks with the same IDs are updated, while chunks from new PDFs are added.
 
-If a PDF has been removed or renamed, delete the old local vector store before rebuilding to prevent stale chunks:
+If a PDF has been removed or renamed, stop the API and delete the old vector store before rebuilding it:
 
 ```powershell
 Remove-Item .\data\chroma_db -Recurse -Force
 python -m src.retrieval.vector_store
 ```
 
-The deletion command only removes the generated local vector index. It does not delete the source PDFs.
+This prevents removed or renamed documents from remaining searchable. The deletion command only removes the generated local vector index. It does not delete the source PDFs in the `documents/` folder.
+
 
 ## Run the API
 
