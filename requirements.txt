@@ -1,0 +1,10 @@
+PyMuPDF
+easyocr
+numpy
+torch
+sentence-transformers
+chromadb
+groq
+python-dotenv
+fastapi
+uvicorn
