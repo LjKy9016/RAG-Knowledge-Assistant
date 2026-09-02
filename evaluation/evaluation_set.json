@@ -1,0 +1,180 @@
+{
+  "single_turn_cases": [
+    {
+      "id": "Q01",
+      "question": "How many days of paid annual leave do full-time employees receive?",
+      "reference_answer": "Full-time employees receive 25 days of paid annual leave plus UK public holidays.",
+      "expected_file": "01_Employee_Handbook_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q02",
+      "question": "How many days each week should hybrid employees normally attend an office?",
+      "reference_answer": "Hybrid employees normally attend an office at least two days each week.",
+      "expected_file": "01_Employee_Handbook_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q03",
+      "question": "How much unused annual leave can be carried forward and when must it be used?",
+      "reference_answer": "Up to five days can be carried forward with manager approval and must be used by 31 March.",
+      "expected_file": "01_Employee_Handbook_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q04",
+      "question": "求职申请在决定作出后保留多长时间？",
+      "reference_answer": "求职申请在决定作出后保留6个月。",
+      "expected_file": "03_Data_Protection_and_Compliance_Guide_EN.pdf",
+      "answerable": true,
+      "language": "zh"
+    },
+    {
+      "id": "Q05",
+      "question": "How long are employee expense records retained?",
+      "reference_answer": "Employee expense records are retained for seven years after the relevant financial year.",
+      "expected_file": "03_Data_Protection_and_Compliance_Guide_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q06",
+      "question": "临时生产权限最长有效多长时间？",
+      "reference_answer": "临时生产权限最长有效8小时。",
+      "expected_file": "04_信息安全与隐私指南_CN.pdf",
+      "answerable": true,
+      "language": "zh"
+    },
+    {
+      "id": "Q07",
+      "question": "认证日志需要保留多长时间？",
+      "reference_answer": "认证日志保留12个月。",
+      "expected_file": "04_信息安全与隐私指南_CN.pdf",
+      "answerable": true,
+      "language": "zh"
+    },
+    {
+      "id": "Q08",
+      "question": "How long are Orbit API access tokens valid?",
+      "reference_answer": "Orbit API access tokens are valid for 60 minutes.",
+      "expected_file": "05_Orbit_Support_API_Technical_Specification_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q09",
+      "question": "What is the standard Orbit API rate limit?",
+      "reference_answer": "The standard rate limit is 120 requests per minute per client.",
+      "expected_file": "05_Orbit_Support_API_Technical_Specification_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q10",
+      "question": "How long is an Idempotency-Key retained for POST ticket requests?",
+      "reference_answer": "The Idempotency-Key is retained for 24 hours.",
+      "expected_file": "05_Orbit_Support_API_Technical_Specification_EN.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q11",
+      "question": "What is the availability target for the Orbit system?",
+      "reference_answer": "The Orbit system availability target is 99.9%.",
+      "expected_file": "06_Orbit_System_Architecture_Overview_Bilingual.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q12",
+      "question": "What are the recovery time and recovery point objectives?",
+      "reference_answer": "The recovery time objective is two hours and the recovery point objective is 15 minutes.",
+      "expected_file": "06_Orbit_System_Architecture_Overview_Bilingual.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q13",
+      "question": "餐饮每天的报销限额是多少，超过多少钱需要明细收据？",
+      "reference_answer": "餐饮每天限额为£35，超过£10需要明细收据。",
+      "expected_file": "07_Expense_Claim_Procedure_Bilingual_scanned.pdf",
+      "answerable": true,
+      "language": "zh"
+    },
+    {
+      "id": "Q14",
+      "question": "伦敦和英国其他地区的酒店每晚报销限额分别是多少？",
+      "reference_answer": "伦敦酒店每晚£160，英国其他地区每晚£120。",
+      "expected_file": "07_Expense_Claim_Procedure_Bilingual_scanned.pdf",
+      "answerable": true,
+      "language": "zh"
+    },
+    {
+      "id": "Q15",
+      "question": "How soon must an expense claim be submitted and how quickly should the manager respond?",
+      "reference_answer": "A claim must be submitted within 30 calendar days and the manager responds within five working days.",
+      "expected_file": "07_Expense_Claim_Procedure_Bilingual_scanned.pdf",
+      "answerable": true,
+      "language": "en"
+    },
+    {
+      "id": "Q16",
+      "question": "What is the capital of France?",
+      "reference_answer": "The information is not available in the internal knowledge base.",
+      "expected_file": null,
+      "answerable": false,
+      "language": "en"
+    },
+    {
+      "id": "Q17",
+      "question": "What will the weather be tomorrow?",
+      "reference_answer": "The information is not available in the internal knowledge base.",
+      "expected_file": null,
+      "answerable": false,
+      "language": "en"
+    },
+    {
+      "id": "Q18",
+      "question": "公司CEO的家庭住址是什么？",
+      "reference_answer": "内部知识库中没有相关信息。",
+      "expected_file": null,
+      "answerable": false,
+      "language": "zh"
+    }
+  ],
+  "multi_turn_cases": [
+    {
+      "id": "M01",
+      "turns": [
+        {
+          "question": "伦敦酒店每晚的报销限额是多少？",
+          "reference_answer": "伦敦酒店每晚报销限额为£160。",
+          "expected_file": "07_Expense_Claim_Procedure_Bilingual_scanned.pdf"
+        },
+        {
+          "question": "那英国其他地区呢？",
+          "reference_answer": "英国其他地区的酒店每晚报销限额为£120。",
+          "expected_file": "07_Expense_Claim_Procedure_Bilingual_scanned.pdf"
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "turns": [
+        {
+          "question": "How many days of paid annual leave do employees receive?",
+          "reference_answer": "Full-time employees receive 25 days of paid annual leave.",
+          "expected_file": "01_Employee_Handbook_EN.pdf"
+        },
+        {
+          "question": "How many unused days can be carried forward and by when must they be used?",
+          "reference_answer": "Up to five days can be carried forward and must be used by 31 March.",
+          "expected_file": "01_Employee_Handbook_EN.pdf"
+        }
+      ]
+    }
+  ]
+}
